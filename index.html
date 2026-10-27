@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Угадай число</title>
+
+  <!-- ДОБАВЛЕНО: подключаем манифест, чтобы сайт можно было установить как приложение -->
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e1e2e">
+  <meta name="theme-color" content="#1e1e2e">
+
   <style>
     body {
       background-color: #1e1e2e;   /* запасной цвет, если гифка не загрузилась */
@@ -235,141 +238,3 @@
         if (guess < player.secret) {
           player.guesses.push(guess + " ↑ (больше)");
           player.message = "Слишком мало, попробуй больше";
-        } else {
-          player.guesses.push(guess + " ↓ (меньше)");
-          player.message = "Слишком много, попробуй меньше";
-        }
-        beep(200, 0.25, 0);
-
-        if (player.attempts >= MAX_ATTEMPTS) {
-          player.message = "Игра окончена! Было число " + player.secret;
-          player.gameOver = true;
-          beep(300, 0.2, 0.3);
-          beep(200, 0.4, 0.5);
-        }
-        update();
-        animate(result, "shake");
-      }
-
-      input.value = "";
-      input.focus();
-    }
-
-    // ---------- Режим «ПК угадывает» ----------
-
-    function pcAnswer(answer) {
-      if (pc.gameOver) return;
-      let result = document.getElementById("result");
-
-      if (answer === "correct") {
-        pc.history.push(pc.guess + " ✔");
-        pc.message = "ПК угадал число " + pc.guess + "! Попыток: " + pc.attempts;
-        pc.gameOver = true;
-        update();
-        animate(result, "win");
-        beep(523, 0.15, 0);
-        beep(659, 0.15, 0.15);
-        beep(784, 0.3, 0.3);
-        return;
-      }
-
-      if (answer === "higher") {
-        pc.history.push(pc.guess + " ↑ (твоё число больше)");
-        pc.low = pc.guess + 1;
-      } else {
-        pc.history.push(pc.guess + " ↓ (твоё число меньше)");
-        pc.high = pc.guess - 1;
-      }
-
-      if (pc.low > pc.high) {
-        pc.message = "Не сходится: кажется, где-то была ошибка в подсказках 🤔";
-        pc.gameOver = true;
-        beep(200, 0.4, 0);
-        update();
-        animate(result, "shake");
-      } else {
-        pc.guess = Math.floor((pc.low + pc.high) / 2);
-        pc.attempts = pc.attempts + 1;
-        pc.message = "";
-        beep(330, 0.1, 0);
-        update();
-      }
-    }
-
-    // ---------- Общие функции ----------
-
-    function setMode(newMode) {
-      mode = newMode;
-      beep(440, 0.1, 0);
-      update();
-    }
-
-    function restart() {
-      if (mode === "player") {
-        newPlayerGame();
-      } else {
-        newPcGame();
-      }
-      document.getElementById("guess").value = "";
-      beep(440, 0.1, 0);
-      update();
-    }
-
-    function update() {
-      saveGame();
-      render();
-      // Регистрируем сервис-воркер, чтобы сайт можно было установить и открывать без интернета
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-    }
-
-    function render() {
-      let isPlayer = (mode === "player");
-
-      document.getElementById("playerControls").style.display = isPlayer ? "block" : "none";
-      document.getElementById("pcControls").style.display = isPlayer ? "none" : "block";
-
-      document.getElementById("modePlayer").classList.toggle("active", isPlayer);
-      document.getElementById("modePc").classList.toggle("active", !isPlayer);
-
-      document.getElementById("guess").max = MAX;
-
-      if (isPlayer) {
-        document.getElementById("title").textContent = "Угадай число от 1 до " + MAX;
-        document.getElementById("result").textContent = player.message;
-        document.getElementById("attempts").textContent = "Попыток: " + player.attempts + " из " + MAX_ATTEMPTS;
-        document.getElementById("historyTitle").textContent = "История попыток";
-        document.getElementById("guess").disabled = player.gameOver;
-        document.getElementById("checkBtn").disabled = player.gameOver;
-      } else {
-        document.getElementById("title").textContent = "Загадай число от 1 до " + MAX + ", а ПК его угадает";
-        document.getElementById("result").textContent = pc.message;
-        document.getElementById("attempts").textContent = "Попыток ПК: " + pc.attempts;
-        document.getElementById("historyTitle").textContent = "История ходов ПК";
-        document.getElementById("pcQuestion").textContent = pc.gameOver ? "" : "ПК думает: это число " + pc.guess + "?";
-        document.getElementById("higherBtn").disabled = pc.gameOver;
-        document.getElementById("lowerBtn").disabled = pc.gameOver;
-        document.getElementById("correctBtn").disabled = pc.gameOver;
-      }
-
-      let items = isPlayer ? player.guesses : pc.history;
-      let list = document.getElementById("history");
-      list.innerHTML = "";
-      for (let i = 0; i < items.length; i++) {
-        let item = document.createElement("li");
-        item.textContent = items[i];
-        list.appendChild(item);
-      }
-    }
-
-    // ---------- Запуск ----------
-
-    if (!loadGame()) {
-      newPlayerGame();
-      newPcGame();
-    }
-    render();
-  </script>
-</body>
-</html>
